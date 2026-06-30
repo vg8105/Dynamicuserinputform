@@ -646,26 +646,26 @@ function Section5({ register, setValue }: any) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <ConversationField
           label="Quando precisamos de ter isto pronto?"
-          hint="Deixe em branco se ainda não sabe — definimos juntos."
+          hint="Escolha uma opção ou escreva uma data. Deixe em branco se ainda não sabe."
         >
           <div className="flex flex-wrap gap-1.5 mb-2">
             {['Esta semana', 'Este mês', 'Próximo trimestre', 'A definir'].map(v => (
               <QuickFillButton key={v} onClick={() => setValue('quandoPrecisar', v)} small>{v}</QuickFillButton>
             ))}
           </div>
-          <Input type="date" {...register('quandoPrecisar')} />
+          <Input type="text" placeholder="ex: 15/10/2025 ou Novembro 2025" {...register('quandoPrecisar')} />
         </ConversationField>
 
         <ConversationField
           label="Quando está previsto o lançamento?"
-          hint="Data em que vai para o ar. Pode ser diferente da entrega."
+          hint="Escolha uma opção ou escreva uma data. Pode ser diferente da entrega."
         >
           <div className="flex flex-wrap gap-1.5 mb-2">
             {['Este mês', 'Q3 2025', 'Q4 2025', 'A definir'].map(v => (
               <QuickFillButton key={v} onClick={() => setValue('quandoLancar', v)} small>{v}</QuickFillButton>
             ))}
           </div>
-          <Input type="date" {...register('quandoLancar')} />
+          <Input type="text" placeholder="ex: 01/01/2026 ou Q1 2026" {...register('quandoLancar')} />
         </ConversationField>
       </div>
 
