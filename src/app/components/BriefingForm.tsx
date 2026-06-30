@@ -71,13 +71,13 @@ const SECTION_INTROS: Record<number, { headline: string; sub: string }> = {
   },
   6: {
     headline: 'Está quase! Reveja antes de enviar.',
-    sub: 'Confirme se está tudo correto. Se quiser alterar algo, pode voltar atrás.',
+    sub: 'Confirme se está tudo correcto. Se quiser alterar algo, pode voltar atrás.',
   },
 };
 
 const SECTION_ENCOURAGEMENTS = [
   'Boa! Agora conte-nos o que precisa de mudar. 👇',
-  'Ótimo! Quem vai usar isto? 👇',
+  'Óptimo! Quem vai usar isto? 👇',
   'Perfeito! Qual é o objetivo? 👇',
   'Excelente! Só mais uma secção. 👇',
   'Está quase! Vamos rever. 👇',
@@ -342,7 +342,7 @@ function Section1({ register, errors }: any) {
         error={errors.nomeProjeto?.message}
       >
         <Input
-          placeholder="ex: Novo rastreamento de encomendas, Redesign da área de clientes..."
+          placeholder="ex: Novo rastreio de encomendas, Redesign da área de clientes..."
           error={errors.nomeProjeto?.message}
           {...register('nomeProjeto', { required: 'Precisamos de um nome para o projeto' })}
         />
@@ -435,7 +435,7 @@ function Section2({ register, errors }: any) {
         hint="Pode ser algo concreto ('quero um botão para X') ou uma sensação ('o processo é demasiado lento')."
         examples={[
           'Os clientes precisam de conseguir ver o estado da encomenda em tempo real, sem ligar para nós.',
-          'O processo de onboarding de novos colaboradores demora 3 semanas — queremos reduzir para 1 semana.',
+          'A integração de novos colaboradores demora 3 semanas — queremos reduzir para 1 semana.',
           'A página de pagamento tem uma taxa de abandono de 40%. Precisamos de perceber porquê e melhorar.',
         ]}
         required
@@ -544,7 +544,7 @@ function Section4({ register, errors, setValue }: any) {
         examples={[
           'Queremos que os clientes consigam rastrear a encomenda sem ligar para o call center.',
           'Queremos que os novos colaboradores consigam começar a trabalhar de forma autónoma na primeira semana.',
-          'Queremos reduzir o abandono no checkout — os clientes devem conseguir pagar em menos de 2 minutos.',
+          'Queremos reduzir o abandono no pagamento — os clientes devem conseguir pagar em menos de 2 minutos.',
         ]}
         required
         error={errors.oqueQueremos?.message}
@@ -600,8 +600,8 @@ function Section4({ register, errors, setValue }: any) {
         label="Há algum exemplo ou referência que admira? (opcional)"
         hint="Pode ser um site, uma app, um fluxo de outro produto CTT, ou até de outra empresa."
         examples={[
-          'Gosto da forma como a Amazon mostra o rastreamento — muito simples e em tempo real.',
-          'O onboarding da app do Banco X é muito intuitivo.',
+          'Gosto da forma como a Amazon mostra o rastreio — muito simples e em tempo real.',
+          'A integração de clientes da app do Banco X é muito intuitiva.',
           'O portal da FNAC tem uma pesquisa que funciona muito bem.',
         ]}
       >
@@ -728,7 +728,7 @@ function Section6Summary({ data, register }: { data: BriefingFormData; register:
         <CheckCircle2 className="text-green-500 flex-shrink-0 mt-0.5" size={20} />
         <div>
           <p className="font-semibold text-gray-800 text-sm">Tudo preenchido!</p>
-          <p className="text-gray-600 text-xs mt-0.5">Reveja o resumo abaixo. Se quiser mudar algo, clique em "Voltar".</p>
+          <p className="text-gray-600 text-xs mt-0.5">Reveja o resumo abaixo. Se quiser alterar algo, clique em "Voltar".</p>
         </div>
       </div>
 
