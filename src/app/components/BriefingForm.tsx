@@ -116,7 +116,7 @@ export default function BriefingForm() {
 PEDIDO DE BRIEFING — Equipa de Experiência Digital CTT
 =======================================================
 
-🎫 BUSINESSMAP: ${data.businessMapTicket || 'N/A'}
+🎫 BUSINESSMAP: ${data.businessMapTicket || 'N/A'}${data.businessMapTicket?.startsWith('http') ? '' : ' — https://app.businessmap.io (pesquise pelo número acima)'}
 📋 PROJETO: ${data.nomeProjeto}
 📅 DATA: ${hoje}
 
@@ -362,15 +362,16 @@ function Section1({ register, errors }: any) {
       </ConversationField>
 
       <ConversationField
-        label="O número do ticket no BusinessMap"
+        label="Iniciativa no BusinessMap"
         why="É aqui que registamos as horas dedicadas ao projecto. Sem este número não conseguimos reportar o trabalho."
+        hint="Pode inserir o número da iniciativa ou colar o link directo para a mesma."
         required
         error={errors.businessMapTicket?.message}
       >
         <Input
-          placeholder="ex: BM-2024-1234"
+          placeholder="ex: BM-2024-1234 ou https://app.businessmap.io/..."
           error={errors.businessMapTicket?.message}
-          {...register('businessMapTicket', { required: 'O número do BusinessMap é obrigatório para reportar as horas' })}
+          {...register('businessMapTicket', { required: 'O número ou link do BusinessMap é obrigatório para reportar as horas' })}
         />
       </ConversationField>
 
