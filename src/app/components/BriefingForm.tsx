@@ -2,6 +2,11 @@ import { useState, useEffect, forwardRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { ChevronRight, ChevronLeft, Send, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import emailjs from '@emailjs/browser';
+
+const EMAILJS_SERVICE_ID = 'service_87odr2k';
+const EMAILJS_TEMPLATE_ID = 'template_otu7qe8';
+const EMAILJS_PUBLIC_KEY = 'hcTyx_N67Vk03xVj-';
 
 interface BriefingFormData {
   // IDENTIFICAÇÃO
@@ -123,24 +128,23 @@ export default function BriefingForm() {
     const projectName = data.nomeProjeto || 'Sem título';
 
     try {
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
           subject: `Briefing - ${businessMap} - ${projectName}`,
           from_name: data.responsavel,
           from_email: data.email,
           message: formatEmailBody(data),
-        }),
-      });
-
-      if (!res.ok) throw new Error('Send failed');
+        },
+        EMAILJS_PUBLIC_KEY
+      );
 
       sessionStorage.setItem('briefing_submitted', 'true');
       sessionStorage.setItem('briefing_data', JSON.stringify(data));
       setIsSubmitted(true);
     } catch (error) {
-      console.error('Send error:', error);
+      console.error('EmailJS error:', error);
       toast.error('Erro ao enviar o briefing. Por favor tente novamente.');
     } finally {
       setIsSubmitting(false);
