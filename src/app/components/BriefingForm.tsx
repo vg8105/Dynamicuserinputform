@@ -2,11 +2,6 @@ import { useState, useEffect, forwardRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { ChevronRight, ChevronLeft, Send, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
-import emailjs from '@emailjs/browser';
-
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID as string;
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string;
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string;
 
 interface BriefingFormData {
   // IDENTIFICAÇÃO
@@ -124,26 +119,28 @@ export default function BriefingForm() {
   const onSubmit = async (data: BriefingFormData) => {
     setIsSubmitting(true);
 
-    const hoje = new Date().toLocaleDateString('pt-PT');
     const businessMap = data.businessMapTicket || 'Sem número';
     const projectName = data.nomeProjeto || 'Sem título';
 
-    const templateParams = {
-      to_email: 'volodymyr.grikh@ctt.pt',
-      subject: `Briefing - ${businessMap} - ${projectName}`,
-      from_name: data.responsavel,
-      from_email: data.email,
-      date: hoje,
-      message: formatEmailBody(data),
-    };
-
     try {
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: `Briefing - ${businessMap} - ${projectName}`,
+          from_name: data.responsavel,
+          from_email: data.email,
+          message: formatEmailBody(data),
+        }),
+      });
+
+      if (!res.ok) throw new Error('Send failed');
+
       sessionStorage.setItem('briefing_submitted', 'true');
       sessionStorage.setItem('briefing_data', JSON.stringify(data));
       setIsSubmitted(true);
     } catch (error) {
-      console.error('EmailJS error:', error);
+      console.error('Send error:', error);
       toast.error('Erro ao enviar o briefing. Por favor tente novamente.');
     } finally {
       setIsSubmitting(false);
