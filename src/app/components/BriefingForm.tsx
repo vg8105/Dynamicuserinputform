@@ -2,6 +2,11 @@ import { useState, useEffect, forwardRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { ChevronRight, ChevronLeft, Send, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import emailjs from '@emailjs/browser';
+
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID as string;
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string;
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string;
 
 interface BriefingFormData {
   // IDENTIFICAÇÃO
@@ -116,21 +121,33 @@ export default function BriefingForm() {
     };
   }, []);
 
-  const onSubmit = (data: BriefingFormData) => {
-    console.log('=== onSubmit STARTED ===');
-    console.log('Data:', data);
+  const onSubmit = async (data: BriefingFormData) => {
+    setIsSubmitting(true);
 
-    // Guardar dados no sessionStorage
-    sessionStorage.setItem('briefing_submitted', 'true');
-    sessionStorage.setItem('briefing_data', JSON.stringify(data));
-    console.log('Data saved to sessionStorage');
+    const hoje = new Date().toLocaleDateString('pt-PT');
+    const businessMap = data.businessMapTicket || 'Sem número';
+    const projectName = data.nomeProjeto || 'Sem título';
 
-    // Mudar estado para mostrar sucesso
-    setIsSubmitted(true);
-    setIsSubmitting(false);
-    console.log('State changed to submitted');
+    const templateParams = {
+      to_email: 'volodymyr.grikh@ctt.pt',
+      subject: `Briefing - ${businessMap} - ${projectName}`,
+      from_name: data.responsavel,
+      from_email: data.email,
+      date: hoje,
+      message: formatEmailBody(data),
+    };
 
-    console.log('=== onSubmit FINISHED ===');
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
+      sessionStorage.setItem('briefing_submitted', 'true');
+      sessionStorage.setItem('briefing_data', JSON.stringify(data));
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('EmailJS error:', error);
+      toast.error('Erro ao enviar o briefing. Por favor tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
 
@@ -752,42 +769,10 @@ function Section7Summary({ data, register }: { data: BriefingFormData; register:
 
 // Componente de Sucesso
 function SuccessMessage({ onReset }: { onReset: () => void }) {
-  const [copied, setCopied] = useState(false);
-  const [showBriefing, setShowBriefing] = useState(false);
-
   const savedData = sessionStorage.getItem('briefing_data');
   const data = savedData ? JSON.parse(savedData) : null;
-  const emailBody = data ? formatEmailBodyStatic(data) : '';
-
-  // Criar assunto com número da iniciativa e nome do projeto
   const businessMap = data?.businessMapTicket || 'Sem número';
   const projectName = data?.nomeProjeto || 'Sem título';
-  const subject = `Briefing - ${businessMap} - ${projectName}`;
-
-  const handleCopyBriefing = () => {
-    if (data) {
-      const fullText = emailBody;
-
-      navigator.clipboard.writeText(fullText).then(() => {
-        setCopied(true);
-        toast.success('Briefing copiado! Agora abra o email e cole.');
-        setTimeout(() => setCopied(false), 3000);
-      }).catch(() => {
-        toast.error('Erro ao copiar. Tente novamente.');
-      });
-    }
-  };
-
-  const handleOpenEmail = () => {
-    // Abrir email com destinatário e assunto preenchidos
-    const mailtoLink = `mailto:volodymyr.grikh@ctt.pt?subject=${encodeURIComponent(subject)}`;
-    window.open(mailtoLink, '_blank');
-  };
-
-  const handleNewRequest = () => {
-    console.log('New request button clicked');
-    onReset();
-  };
 
   return (
     <div className="py-6 md:py-12 px-3 md:px-4">
@@ -796,166 +781,31 @@ function SuccessMessage({ onReset }: { onReset: () => void }) {
           <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-red-50 rounded-full mb-4 md:mb-6">
             <CheckCircle2 className="text-[#E30613]" size={40} />
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2 md:mb-4">Briefing Preparado! 🎉</h2>
-        </div>
-
-        <div className="bg-gray-50 border-2 border-[#E30613] rounded-lg p-4 md:p-6 mb-4 md:mb-6">
-          <p className="text-gray-700 mb-3 md:mb-4">
-            <strong className="text-[#E30613] text-base md:text-lg">📋 Como enviar o briefing:</strong>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2 md:mb-4">Briefing Enviado! 🎉</h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            O seu briefing foi enviado automaticamente para a equipa.
           </p>
-          <ol className="text-sm md:text-sm text-gray-700 space-y-2 md:space-y-3 list-decimal list-inside">
-            <li><strong>Clique no botão "Copiar Briefing"</strong> abaixo</li>
-            <li><strong>Clique no botão "Abrir Email"</strong> para abrir o programa de email</li>
-            <li><strong>Cole o briefing</strong> no corpo do email (manter premido e colar)</li>
-            <li><strong>Clique em "Enviar"</strong> no programa de email</li>
-          </ol>
         </div>
 
-        <div className="space-y-3 md:space-y-4">
-          <div className="flex flex-col md:grid md:grid-cols-2 gap-3 md:gap-4">
-            <button
-              onClick={handleCopyBriefing}
-              className="px-6 md:px-8 py-4 bg-[#E30613] text-white rounded-lg hover:bg-[#C00510] active:bg-[#A00410] transition-colors font-medium text-base md:text-lg touch-manipulation"
-            >
-              {copied ? '✅ Briefing Copiado!' : '📋 1. Copiar Briefing'}
-            </button>
-            <button
-              onClick={handleOpenEmail}
-              className="px-6 md:px-8 py-4 bg-[#E30613] text-white rounded-lg hover:bg-[#C00510] active:bg-[#A00410] transition-colors font-medium text-base md:text-lg touch-manipulation"
-            >
-              📧 2. Abrir Email
-            </button>
-          </div>
+        <div className="bg-gray-50 border-2 border-[#E30613] rounded-lg p-4 md:p-6 mb-6">
+          <p className="text-sm md:text-base text-gray-700 space-y-1">
+            <strong className="block text-[#E30613] mb-2">📧 Detalhes do envio:</strong>
+            <span className="block"><strong>Para:</strong> volodymyr.grikh@ctt.pt</span>
+            <span className="block"><strong>Assunto:</strong> Briefing - {businessMap} - {projectName}</span>
+          </p>
+        </div>
 
-          <div className="bg-white border-2 border-gray-300 rounded-lg p-3 md:p-4">
-            <p className="text-xs md:text-sm text-gray-600 break-words">
-              <strong>Destinatário:</strong> volodymyr.grikh@ctt.pt<br />
-              <strong>Assunto:</strong> {subject}
-            </p>
-          </div>
-
+        <div className="text-center pt-4 border-t">
           <button
-            onClick={() => setShowBriefing(!showBriefing)}
-            className="w-full px-4 md:px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 active:bg-gray-400 transition-colors font-medium text-sm md:text-base touch-manipulation"
+            onClick={onReset}
+            className="px-6 py-4 md:py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 active:bg-gray-400 transition-colors font-medium text-sm md:text-base touch-manipulation"
           >
-            {showBriefing ? '▲ Ocultar Pré-visualização' : '▼ Ver Pré-visualização do Briefing'}
+            Fazer Novo Pedido
           </button>
-
-          {showBriefing && (
-            <div className="bg-white border-2 border-gray-300 rounded-lg p-4 md:p-6 overflow-x-auto">
-              <pre className="text-xs md:text-xs text-gray-700 whitespace-pre-wrap font-mono break-words">{emailBody}</pre>
-            </div>
-          )}
-
-          <div className="text-center pt-4 md:pt-6 border-t">
-            <button
-              onClick={handleNewRequest}
-              className="px-6 py-4 md:py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 active:bg-gray-400 transition-colors font-medium text-sm md:text-base touch-manipulation"
-            >
-              Fazer Novo Pedido
-            </button>
-          </div>
         </div>
       </div>
     </div>
   );
-}
-
-// Função auxiliar para formatar email (versão estática para usar fora do componente principal)
-function formatEmailBodyStatic(data: BriefingFormData) {
-  const hoje = new Date().toLocaleDateString('pt-PT');
-
-  return `
-PEDIDO DE BRIEFING - Equipa de Experiência Digital CTT
-=====================================================
-
-🎫 BUSINESSMAP: ${data.businessMapTicket}
-📋 PROJETO: ${data.nomeProjeto}
-📅 DATA: ${hoje}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-👋 QUEM FAZ O PEDIDO
---------------------
-Área: ${data.areaNegocio}
-Responsável: ${data.responsavel}
-Email: ${data.email}
-
-❗ O PROBLEMA
--------------
-Como funciona hoje:
-${data.situacaoAtual}
-
-O que precisa melhorar:
-${data.oquePrecisaMelhorar}
-
-👥 PARA QUEM É
---------------
-Quem vai usar: ${Array.isArray(data.quemUsa) ? data.quemUsa.join(', ') : 'N/A'}
-Quantas pessoas: ${data.quantasPessoas || 'N/A'}
-
-Como são essas pessoas:
-${data.comoSaoEssasPessoas || 'N/A'}
-
-Como fazem hoje:
-${data.comoFazemHoje || 'N/A'}
-
-O que as incomoda:
-${data.oquesIncomoda || 'N/A'}
-
-🎯 O OBJETIVO
--------------
-O que queremos:
-${data.oqueQueremos}
-
-Como vai ajudar:
-${data.comoVaiAjudar}
-
-💡 REFERÊNCIAS E EXCLUSÕES
---------------------------
-Inspirações ou referências:
-${data.inspiracoes || 'Nenhuma'}
-
-O que NÃO está incluído:
-${data.oqueNaoInclui || 'N/A'}
-
-📊 MEDIR RESULTADOS
--------------------
-Como saber se está a funcionar:
-${data.comoSaberResultados || 'N/A'}
-
-Números atuais:
-${data.numerosAtuais || 'N/A'}
-
-Números que queremos atingir:
-${data.numerosObjetivo || 'N/A'}
-
-⏰ QUANDO E LIMITAÇÕES
-----------------------
-Prioridade: ${data.prioridade || 'N/A'}
-Quando precisamos: ${data.quandoPrecisar || 'A definir'}
-Quando lançar: ${data.quandoLancar || 'A definir'}
-
-Limitações ou regras:
-${data.limitacoes || 'Nenhuma'}
-
-Outras equipas envolvidas:
-${data.outrasEquipas || 'Nenhuma'}
-
-Dependências de outros projetos:
-${data.dependencias || 'Nenhuma'}
-
-🔗 DOCUMENTOS E LINKS DE SUPORTE
----------------------------------
-${data.documentosLinks || 'Nenhum'}
-
-📎 NOTAS ADICIONAIS
--------------------
-${data.outrasNotas || 'Nenhuma'}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Briefing enviado através do formulário digital
-  `.trim();
 }
 
 // COMPONENTES AUXILIARES
