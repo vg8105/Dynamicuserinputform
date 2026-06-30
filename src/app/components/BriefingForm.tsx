@@ -201,7 +201,7 @@ Enviado através do formulário digital de briefing CTT
 
   const nextSection = async () => {
     const requiredBySection: Record<number, (keyof BriefingFormData)[]> = {
-      1: ['nomeProjeto', 'areaNegocio', 'responsavel', 'email'],
+      1: ['businessMapTicket', 'nomeProjeto', 'areaNegocio', 'responsavel', 'email'],
       2: ['situacaoAtual', 'oquePrecisaMelhorar'],
       3: [], 4: ['oqueQueremos'], 5: [], 6: [],
     };
@@ -363,12 +363,14 @@ function Section1({ register, errors }: any) {
 
       <ConversationField
         label="O número do ticket no BusinessMap"
-        hint="Se ainda não tiver, pode deixar em branco."
-        why="Serve para ligar este briefing à iniciativa no BusinessMap."
+        why="É aqui que registamos as horas dedicadas ao projecto. Sem este número não conseguimos reportar o trabalho."
+        required
+        error={errors.businessMapTicket?.message}
       >
         <Input
-          placeholder="ex: BM-2024-1234 (opcional)"
-          {...register('businessMapTicket')}
+          placeholder="ex: BM-2024-1234"
+          error={errors.businessMapTicket?.message}
+          {...register('businessMapTicket', { required: 'O número do BusinessMap é obrigatório para reportar as horas' })}
         />
       </ConversationField>
 
